@@ -12,8 +12,8 @@ else ()
 endif ()
 
 
-set(SFML_ROOT "C:/Users/Lenovo/Documents/cpp_libs/SFML-2.5.1")
-set(SFML_DIR "C:/Users/Lenovo/Documents/cpp_libs/SFML-2.5.1/lib/cmake/SFML")
+set(SFML_ROOT "libs/SFML-2.5.1")
+set(SFML_DIR "libs/SFML-2.5.1/lib/cmake/SFML")
 set(SFML_STATIC_LIBRARIES TRUE)
 find_package(SFML 2 REQUIRED COMPONENTS audio graphics window system)
 if (SFML_FOUND)
