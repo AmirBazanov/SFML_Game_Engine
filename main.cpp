@@ -28,20 +28,20 @@ public:
             wn.draw(object);
         }
     }
-    void drawGrid(RenderWindow &wn){
+    static void drawGrid(RenderWindow &wn){
         Vector2i wn_size =  Vector2i(wn.getSize().x, wn.getSize().y);
         int line_count = (wn_size.x+wn_size.y)/50+1;
         auto* grid = new RectangleShape[line_count];
         for(int i =0; i<line_count; i++){
             if(i>wn_size.x/50){
                 int y_pos = i-wn_size.x/50;
-                grid[i] = RectangleShape(Vector2f(wn_size.x, 1));
-                grid[i].setPosition(0, y_pos*50);
+                grid[i] = RectangleShape(Vector2f((float)wn_size.x, 1));
+                grid[i].setPosition(0, (float)y_pos*50);
                 grid[i].setFillColor(Color(80, 80, 80));
             }
             else {
-                grid[i] = RectangleShape(Vector2f(1, wn_size.y));
-                grid[i].setPosition(i*50, 0);
+                grid[i] = RectangleShape(Vector2f(1, (float)wn_size.y));
+                grid[i].setPosition((float)i*50, 0);
                 grid[i].setFillColor(Color(80, 80, 80));
             }
         }
@@ -53,38 +53,38 @@ public:
 
 class Player : public Keyboard{
 private:
-    RectangleShape dir;
-    float angelView;
+    CircleShape player;
+
     Vector2f position;
 
 public:
-    explicit Player(float anl){
+    Player(){
         position = Vector2f(100, 100);
-        dir = RectangleShape({10, 2});
-        dir.setPosition(position);
-        dir.setFillColor(Color(200,0,0));
-        angelView = anl;
+        player = CircleShape(5, 50);
+        player.setPosition(position);
+        player.setFillColor(Color::Green);
+
     }
     void moving(float speed){
         if(isKeyPressed(W)){
-            dir.move(speed* cos((dir.getRotation()*3.24)/180), speed* sin((dir.getRotation()*3.24)/180));
+            player.move(speed* cos((player.getRotation()*3.24)/180), speed* sin((player.getRotation()*3.24)/180));
         }
         if(isKeyPressed(A)){
-            dir.rotate(-0.4);
+            player.rotate(-0.4);
         }if(isKeyPressed(D)){
-            dir.rotate(0.4);
+            player.rotate(0.4);
         }
         }
     void setPlayer(RenderWindow &wn){
-        wn.draw(dir);
+        wn.draw(player);
     }
     };
 
 int main()
 {
-    RenderWindow window(VideoMode(1360, 720), "Vertex");
+    RenderWindow window(VideoMode(1450, 745), "Vertex");
     Map mp;
-    Player pl(10);
+    Player pl;
     mp.generatePos();
     while (window.isOpen())
     {
