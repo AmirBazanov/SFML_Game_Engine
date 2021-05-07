@@ -1,5 +1,4 @@
 #include <SFML/Graphics.hpp>
-#include <vector>
 #include <iostream>
 #include <cmath>
 using namespace sf;
@@ -7,27 +6,39 @@ using namespace sf;
 
 class Map{
 private:
-    std::vector<RectangleShape> objects;
+    int map[15][29] =  {{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+                        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,1,2,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,1,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+                        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};
 public:
-    Map(){
-        for(int i=0; i<=50; i++){
-            objects.emplace_back(Vector2f(std::rand()%100, std::rand()%100));
+    void drawMap(RenderWindow& wn){
+        for(int row=0; row<15;row++){
+            for(int collum=0;collum<29;collum++){
+                if(map[row][collum]){
+                    RectangleShape rec = RectangleShape({50,50});
+                    rec.setPosition(collum*50, row*50);
+                    switch (map[row][collum]) {
+                        case 1: rec.setFillColor(Color::White); break;
+                        case 2: rec.setFillColor(Color::Blue); break;
+                        case 3: rec.setFillColor(Color::Red); break;
+                    }
+                    wn.draw(rec);
+                }
+            }
         }
     }
 
-    void generatePos(){
-        for(RectangleShape& object : objects){
-            object.setPosition(std::rand() % 1500 + 1, std::rand() % 1000 + 1);
-        }
-    }
-
-
-
-    void setObjects(RenderWindow &wn){
-        for (const RectangleShape& object: objects){
-            wn.draw(object);
-        }
-    }
     static void drawGrid(RenderWindow &wn){
         Vector2i wn_size =  Vector2i(wn.getSize().x, wn.getSize().y);
         int line_count = (wn_size.x+wn_size.y)/50+1;
@@ -49,6 +60,7 @@ public:
             wn.draw(grid[i]);
         }
     }
+
 };
 
 class Player : public Keyboard{
@@ -82,10 +94,9 @@ public:
 
 int main()
 {
-    RenderWindow window(VideoMode(1450, 745), "Vertex");
-    Map mp;
+    RenderWindow window(VideoMode(1450, 750), "Vertex");
     Player pl;
-    mp.generatePos();
+    Map map;
     while (window.isOpen())
     {
         Event event{};
@@ -95,16 +106,13 @@ int main()
             {
                 window.close();
             }
-            if(Keyboard::isKeyPressed(sf::Keyboard::R)){
-                mp.generatePos();
-            }
 
         }
         pl.moving(0.2);
         window.clear();
-        mp.setObjects(window);
         pl.setPlayer(window);
-        mp.drawGrid(window);
+        Map::drawGrid(window);
+        map.drawMap(window);
         window.display();
     }
 
