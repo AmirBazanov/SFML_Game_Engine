@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <cmath>
+#define toRadians 3.14/180
 using namespace sf;
 
 
@@ -16,7 +17,7 @@ private:
                         {1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,1},
                         {1,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,1},
-                        {1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1},
+                        {1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,2,3,0,0,0,0,0,0,0,0,0,1},
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1},
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -29,7 +30,7 @@ public:
                     RectangleShape rec = RectangleShape({50,50});
                     rec.setPosition(collum*50, row*50);
                     switch (map[row][collum]) {
-                        case 1: rec.setFillColor(Color::White); break;
+                        case 1: rec.setFillColor(Color(100,100,100)); break;
                         case 2: rec.setFillColor(Color::Blue); break;
                         case 3: rec.setFillColor(Color::Red); break;
                     }
@@ -66,7 +67,7 @@ public:
 class Player : public Keyboard{
 private:
     CircleShape player;
-
+    RectangleShape rays[29];
     Vector2f position;
 
 public:
@@ -79,7 +80,7 @@ public:
     }
     void moving(float speed){
         if(isKeyPressed(W)){
-            player.move(speed* cos((player.getRotation()*3.24)/180), speed* sin((player.getRotation()*3.24)/180));
+            player.move(speed* cos(player.getRotation()*toRadians), speed* sin(player.getRotation()*toRadians));
         }
         if(isKeyPressed(A)){
             player.rotate(-0.4);
@@ -90,11 +91,26 @@ public:
     void setPlayer(RenderWindow &wn){
         wn.draw(player);
     }
+
+    void drawRays(RenderWindow &wn){
+        position = player.getPosition();
+        float step = 2.4;
+        for(int i=0; i<29;i++){
+           rays[i] = RectangleShape({100,1});
+           rays[i].setPosition({position.x, position.y+4});
+           rays[i].setFillColor(Color::Red);
+           rays[i].setRotation(player.getRotation()+i*step-40);
+        }
+        for(auto ray: rays){
+            wn.draw(ray);
+        }
+    }
+
     };
 
 int main()
 {
-    RenderWindow window(VideoMode(1450, 750), "Vertex");
+    RenderWindow window(VideoMode(1450, 750), "SFML Engine");
     Player pl;
     Map map;
     while (window.isOpen())
@@ -110,9 +126,10 @@ int main()
         }
         pl.moving(0.2);
         window.clear();
-        pl.setPlayer(window);
         Map::drawGrid(window);
         map.drawMap(window);
+        pl.drawRays(window);
+        pl.setPlayer(window);
         window.display();
     }
 
