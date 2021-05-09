@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <cstdio>
 #include <cmath>
 #define toRadians 3.14/180
 using namespace sf;
@@ -7,6 +8,11 @@ using namespace sf;
 
 class Map{
 private:
+    Vector2i wn_size;
+    RectangleShape map_objects;
+    int line_count;
+    RectangleShape* grid;
+public:
     int map[15][29] =  {{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -22,28 +28,27 @@ private:
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1},
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
                         {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};
-public:
     void drawMap(RenderWindow& wn){
         for(int row=0; row<15;row++){
             for(int collum=0;collum<29;collum++){
                 if(map[row][collum]){
-                    RectangleShape rec = RectangleShape({50,50});
-                    rec.setPosition(collum*50, row*50);
+                    map_objects = RectangleShape({50,50});
+                    map_objects.setPosition(collum*50, row*50);
                     switch (map[row][collum]) {
-                        case 1: rec.setFillColor(Color(100,100,100)); break;
-                        case 2: rec.setFillColor(Color::Blue); break;
-                        case 3: rec.setFillColor(Color::Red); break;
+                        case 1: map_objects.setFillColor(Color(100,100,100)); break;
+                        case 2: map_objects.setFillColor(Color::Blue); break;
+                        case 3: map_objects.setFillColor(Color::Red); break;
                     }
-                    wn.draw(rec);
+                    wn.draw(map_objects);
                 }
             }
         }
     }
 
-    static void drawGrid(RenderWindow &wn){
-        Vector2i wn_size =  Vector2i(wn.getSize().x, wn.getSize().y);
-        int line_count = (wn_size.x+wn_size.y)/50+1;
-        auto* grid = new RectangleShape[line_count];
+     void drawGrid(RenderWindow &wn){
+        wn_size =  Vector2i(wn.getSize().x, wn.getSize().y);
+        line_count = (wn_size.x+wn_size.y)/50+1;
+        grid = new RectangleShape[line_count];
         for(int i =0; i<line_count; i++){
             if(i>wn_size.x/50){
                 int y_pos = i-wn_size.x/50;
@@ -67,7 +72,9 @@ public:
 class Player : public Keyboard{
 private:
     CircleShape player;
-    RectangleShape rays[29];
+    Vector2f hit_position;
+    Vertex line[2];
+    float distance;
     Vector2f position;
 
 public:
@@ -82,6 +89,9 @@ public:
         if(isKeyPressed(W)){
             player.move(speed* cos(player.getRotation()*toRadians), speed* sin(player.getRotation()*toRadians));
         }
+        if(isKeyPressed(S)){
+            player.move(-speed* cos(player.getRotation()*toRadians), -speed* sin(player.getRotation()*toRadians));
+        }
         if(isKeyPressed(A)){
             player.rotate(-0.4);
         }if(isKeyPressed(D)){
@@ -89,21 +99,19 @@ public:
         }
         }
     void setPlayer(RenderWindow &wn){
-        wn.draw(player);
+//        wn.draw(player);      The Circle rotates from left conner, it looks awfully. Now i think to bout remove them
     }
 
-    void drawRays(RenderWindow &wn){
-        position = player.getPosition();
-        float step = 2.4;
-        for(int i=0; i<29;i++){
-           rays[i] = RectangleShape({100,1});
-           rays[i].setPosition({position.x, position.y+4});
-           rays[i].setFillColor(Color::Red);
-           rays[i].setRotation(player.getRotation()+i*step-40);
+    void findObstacle(RenderWindow &wn, int map[][29]){
+        distance = 0;
+        for(;distance<9000;distance+=1){
+            hit_position = {static_cast<float>((float)player.getPosition().x + distance*cos(player.getRotation()*toRadians)),
+                            static_cast<float>((float)player.getPosition().y + distance*sin(player.getRotation()*toRadians))};
+            if(map[(int)hit_position.y/50][(int)hit_position.x/50]!=0) break;
         }
-        for(auto ray: rays){
-            wn.draw(ray);
-        }
+        line[0] = Vertex(player.getPosition());
+        line[1] = Vertex(hit_position);
+        wn.draw(line, 2, Lines);
     }
 
     };
@@ -113,9 +121,9 @@ int main()
     RenderWindow window(VideoMode(1450, 750), "SFML Engine");
     Player pl;
     Map map;
+    Event event{};
     while (window.isOpen())
     {
-        Event event{};
         while (window.pollEvent(event))
         {
             if (event.type == Event::Closed)
@@ -124,11 +132,11 @@ int main()
             }
 
         }
-        pl.moving(0.2);
+        pl.moving(0.5);
         window.clear();
-        Map::drawGrid(window);
+        map.drawGrid(window);
         map.drawMap(window);
-        pl.drawRays(window);
+        pl.findObstacle(window, map.map);
         pl.setPlayer(window);
         window.display();
     }
