@@ -28,6 +28,13 @@ public:
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1},
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
                         {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};
+    Map(RenderWindow &wn){
+
+        wn_size =  Vector2i(wn.getSize().x, wn.getSize().y);
+        line_count = (wn_size.x+wn_size.y)/50+1;
+        grid = new RectangleShape[line_count];
+
+    }
     void drawMap(RenderWindow& wn){
         for(int row=0; row<15;row++){
             for(int collum=0;collum<29;collum++){
@@ -46,9 +53,6 @@ public:
     }
 
      void drawGrid(RenderWindow &wn){
-        wn_size =  Vector2i(wn.getSize().x, wn.getSize().y);
-        line_count = (wn_size.x+wn_size.y)/50+1;
-        grid = new RectangleShape[line_count];
         for(int i =0; i<line_count; i++){
             if(i>wn_size.x/50){
                 int y_pos = i-wn_size.x/50;
@@ -120,7 +124,7 @@ int main()
 {
     RenderWindow window(VideoMode(1450, 750), "SFML Engine");
     Player pl;
-    Map map;
+    Map map(window);
     Event event{};
     while (window.isOpen())
     {
