@@ -10,6 +10,7 @@ class Map{
 private:
     Vector2i wn_size;
     RectangleShape map_objects;
+	RenderWindow* window;
     int line_count;
     RectangleShape* grid;
 public:
@@ -29,30 +30,30 @@ public:
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
                         {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};
     Map(RenderWindow &wn){
-
+		window = &wn;
         wn_size =  Vector2i(wn.getSize().x, wn.getSize().y);
         line_count = (wn_size.x+wn_size.y)/50+1;
         grid = new RectangleShape[line_count];
 
     }
-    void drawMap(RenderWindow& wn){
+    void drawMap(){
         for(int row=0; row<15;row++){
             for(int collum=0;collum<29;collum++){
                 if(map[row][collum]){
                     map_objects = RectangleShape({50,50});
-                    map_objects.setPosition(collum*50, row*50);
+                    map_objects.setPosition((float)collum*50, (float)row*50);
                     switch (map[row][collum]) {
                         case 1: map_objects.setFillColor(Color(100,100,100)); break;
                         case 2: map_objects.setFillColor(Color::Blue); break;
                         case 3: map_objects.setFillColor(Color::Red); break;
                     }
-                    wn.draw(map_objects);
+					window->draw(map_objects);
                 }
             }
         }
     }
 
-     void drawGrid(RenderWindow &wn){
+     void drawGrid(){
         for(int i =0; i<line_count; i++){
             if(i>wn_size.x/50){
                 int y_pos = i-wn_size.x/50;
@@ -67,46 +68,46 @@ public:
             }
         }
         for(int i =0; i<line_count;i++){
-            wn.draw(grid[i]);
+            window->draw(grid[i]);
         }
     }
 
 };
 
-class Player : public Keyboard{
+class Player{
 private:
     CircleShape player;
     Vector2f hit_position;
     Vertex line[2];
     float distance;
+	RenderWindow* window;
     Vector2f position;
 
 public:
-    Player(){
+    Player(RenderWindow &wn){
         position = Vector2f(100, 100);
+		window = &wn;
         player = CircleShape(5, 50);
         player.setPosition(position);
         player.setFillColor(Color::Green);
 
     }
     void moving(float speed){
-        if(isKeyPressed(W)){
-            player.move(speed* cos(player.getRotation()*toRadians), speed* sin(player.getRotation()*toRadians));
+        if(Keyboard::isKeyPressed(Keyboard::W)){
+            player.move((float)(speed* cos(player.getRotation()*toRadians)), (float)(speed* sin(player.getRotation()*toRadians)));
         }
-        if(isKeyPressed(S)){
-            player.move(-speed* cos(player.getRotation()*toRadians), -speed* sin(player.getRotation()*toRadians));
+        if(Keyboard::isKeyPressed(Keyboard::S)){
+            player.move((float)(-speed* cos(player.getRotation()*toRadians)),(float)(-speed* sin(player.getRotation()*toRadians)));
         }
-        if(isKeyPressed(A)){
-            player.rotate(-0.4);
-        }if(isKeyPressed(D)){
-            player.rotate(0.4);
+        if(Keyboard::isKeyPressed(Keyboard::A)){
+            player.rotate((float)-0.4);
         }
+		if(Keyboard::isKeyPressed(Keyboard::D)){
+            player.rotate((float)0.4);
         }
-    void setPlayer(RenderWindow &wn){
-//        wn.draw(player);      The Circle rotates from left conner, it looks awfully. Now i think to bout remove them
     }
 
-    void findObstacle(RenderWindow &wn, int map[][29]){
+    void findObstacle(int map[][29]){
         distance = 0;
         for(;distance<9000;distance+=1){
             hit_position = {static_cast<float>((float)player.getPosition().x + distance*cos(player.getRotation()*toRadians)),
@@ -115,7 +116,7 @@ public:
         }
         line[0] = Vertex(player.getPosition());
         line[1] = Vertex(hit_position);
-        wn.draw(line, 2, Lines);
+        window->draw(line, 2, Lines);
     }
 
     };
@@ -123,7 +124,7 @@ public:
 int main()
 {
     RenderWindow window(VideoMode(1450, 750), "SFML Engine");
-    Player pl;
+    Player pl(window);
     Map map(window);
     Event event{};
     while (window.isOpen())
@@ -138,10 +139,9 @@ int main()
         }
         pl.moving(0.5);
         window.clear();
-        map.drawGrid(window);
-        map.drawMap(window);
-        pl.findObstacle(window, map.map);
-        pl.setPlayer(window);
+        map.drawGrid();
+        map.drawMap();
+        pl.findObstacle(map.map);
         window.display();
     }
 
