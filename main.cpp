@@ -74,52 +74,60 @@ public:
 
 };
 
-class Player{
+class Player {
 private:
-    CircleShape player;
+    RectangleShape player;
     Vector2f hit_position;
     Vertex line[2];
+    float fov;
     float distance;
-	RenderWindow* window;
+    RenderWindow *window;
     Vector2f position;
 
 public:
-    Player(RenderWindow &wn){
+    Player(RenderWindow &wn) {
         position = Vector2f(100, 100);
-		window = &wn;
-        player = CircleShape(5, 50);
+        fov = 60;
+        window = &wn;
+        player = RectangleShape({5, 5});
         player.setPosition(position);
         player.setFillColor(Color::Green);
 
     }
-    void moving(float speed){
-        if(Keyboard::isKeyPressed(Keyboard::W)){
-            player.move((float)(speed* cos(player.getRotation()*toRadians)), (float)(speed* sin(player.getRotation()*toRadians)));
+
+    void moving(float speed) {
+        if (Keyboard::isKeyPressed(Keyboard::W)) {
+            player.move((float) (speed * cos(player.getRotation() * toRadians)),
+                        (float) (speed * sin(player.getRotation() * toRadians)));
         }
-        if(Keyboard::isKeyPressed(Keyboard::S)){
-            player.move((float)(-speed* cos(player.getRotation()*toRadians)),(float)(-speed* sin(player.getRotation()*toRadians)));
+        if (Keyboard::isKeyPressed(Keyboard::S)) {
+            player.move((float) (-speed * cos(player.getRotation() * toRadians)),
+                        (float) (-speed * sin(player.getRotation() * toRadians)));
         }
-        if(Keyboard::isKeyPressed(Keyboard::A)){
-            player.rotate((float)-0.4);
+        if (Keyboard::isKeyPressed(Keyboard::A)) {
+            player.rotate((float) -0.4);
         }
-		if(Keyboard::isKeyPressed(Keyboard::D)){
-            player.rotate((float)0.4);
+        if (Keyboard::isKeyPressed(Keyboard::D)) {
+            player.rotate((float) 0.4);
         }
     }
 
-    void findObstacle(int map[][29]){
-        distance = 0;
-        for(;distance<9000;distance+=1){
-            hit_position = {static_cast<float>((float)player.getPosition().x + distance*cos(player.getRotation()*toRadians)),
-                            static_cast<float>((float)player.getPosition().y + distance*sin(player.getRotation()*toRadians))};
-            if(map[(int)hit_position.y/50][(int)hit_position.x/50]!=0) break;
+    void findObstacle(int map[][29]) {
+        window->draw(player);
+        for (int i = 0; i < window->getSize().x; i++) {
+            float angle = player.getRotation() - fov / 2 + fov * i / window->getSize().x;
+            distance = 0;
+            for (; distance < 500; distance += 1) {
+                hit_position = {(float) (player.getPosition().x + distance * cos(angle * toRadians)),
+                                (float) (player.getPosition().y + distance * sin(angle * toRadians))};
+                if (map[(int) (hit_position.y / 50)][(int) (hit_position.x / 50)] != 0) break;
+            }
+            line[0] = Vertex(player.getPosition());
+            line[1] = Vertex(hit_position);
+            window->draw(line, 2, Lines);
         }
-        line[0] = Vertex(player.getPosition());
-        line[1] = Vertex(hit_position);
-        window->draw(line, 2, Lines);
     }
-
-    };
+};
 
 int main()
 {
@@ -137,10 +145,10 @@ int main()
             }
 
         }
-        pl.moving(0.5);
         window.clear();
         map.drawGrid();
         map.drawMap();
+        pl.moving(0.5);
         pl.findObstacle(map.map);
         window.display();
     }
